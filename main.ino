@@ -10,8 +10,8 @@
  * IR2106 half-bridge gate driver on a UPS/inverter PCB.
  *
  * Features:
- * - Hardware Timer1 PWM at ~10 kHz
- * - Complementary outputs with ~2.5 µs dead-time
+ * - Hardware Timer1 PWM at ~20 kHz
+ * - Complementary outputs with ~1.5 µs dead-time
  * - Duty cycle sweep from 10% to 90% for dynamic testing
  * - On-board LED (pin 13) blinks twice every 5 seconds as a heartbeat
  *
@@ -28,7 +28,7 @@
  ***************************************************************/
 
 unsigned long lastBlink = 0;
-int duty = 160;          // Start at 10% of ICR1 (1600)
+int duty = 160;          // Start at 10% of ICR1 (800)
 int step = 16;           // Step size for duty sweep
 
 void setup() {
@@ -46,11 +46,11 @@ void setup() {
   TCCR1B = (1 << WGM13) | (1 << WGM12) | (1 << CS10); // No prescaler
 
   // Set TOP for frequency
-  ICR1 = 1600;   // 10 kHz PWM at 16 MHz clock
+  ICR1 = 800;   // 20 kHz PWM at 16 MHz clock
 
   // Initial duty cycle
   OCR1A = duty;
-  OCR1B = duty - 40;   // Dead-time offset (~2.5 µs)
+  OCR1B = duty - 24;   // Dead-time offset (~1.5 µs at 16 MHz)
 }
 
 void loop() {
@@ -67,11 +67,11 @@ void loop() {
 
   // Sweep duty cycle between 10% and 90%
   duty += step;
-  if (duty >= 1440 || duty <= 160) { // 90% or 10%
+  if (duty >= 720 || duty <= 80) { // 90% or 10%
     step = -step; // Reverse direction
   }
 
   OCR1A = duty;
-  OCR1B = duty - 40; // Maintain dead-time
+  OCR1B = duty - 24; // Maintain ~1.5 µs dead-time
   delay(50);         // Smooth sweep
 }
